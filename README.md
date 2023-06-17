@@ -1,2 +1,5 @@
 # CrittersBreak Browser Add-on
-A Student Ambassador Project
+
+**Project Type:** Prototype Sprint
+
+**Problem Description:** TBD

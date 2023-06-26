@@ -9,5 +9,7 @@ Our team members have noticed that many of our peers spend large parts of their 
 ## Research
 ### Prevalence
 ### Consequences
+- [Exposure to screens](https://www.activesgcircle.gov.sg/activehealth/read/screen-time/what-are-the-negative-side-effects-of-too-much-screen-time): Eye strain, sleep deprivation, loss of cognitive ability, etc.
+- [Sedentary lifestyle](https://www.bbc.co.uk/bitesize/guides/zxqd2p3/revision/2): Obesity, increased stress, increased risk of chronic health diseases including cancer, cardiovascular problems, etc.
 ### Existing Solutions
 Many browser extensions allow the creation of timers and reminders based on concepts such as the Pomodoro method for taking breaks, *but* these are easily skippable and offers no extrinsic motivation for the user to actually take breaks, meaning that they have no reason to follow the timer unless they themselves want to.

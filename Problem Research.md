@@ -10,3 +10,4 @@ Our team members have noticed that many of our peers spend large parts of their 
 ### Prevalence
 ### Consequences
 ### Existing Solutions
+Many browser extensions allow the creation of timers and reminders based on concepts such as the Pomodoro method for taking breaks, *but* these are easily skippable and offers no extrinsic motivation for the user to actually take breaks, meaning that they have no reason to follow the timer unless they themselves want to.

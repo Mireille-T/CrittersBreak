@@ -1,1 +1,59 @@
-/* Insert CSS for your popup */
+html, body {
+    width: 480px;
+    height: 360px;
+}
+
+#my-critters {
+    display: none;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-right: 36px;
+}
+
+#my-critters.open {
+    display: flex;
+}
+
+#critters-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+}
+
+#critters-list li {
+    padding: 0;
+    border: 4px solid black;
+    width: 70px;
+    height: 70px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: -4px;
+    margin-bottom: -4px;
+}
+
+#critter-focus {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 12px;
+    width: 116px;
+}
+
+#focus-box {
+    width: 108px;
+    height: 108px;
+    border: 4px solid black;
+}
+
+#settings {
+    display: none;
+}
+
+#settings.open {
+    display: block;
+}

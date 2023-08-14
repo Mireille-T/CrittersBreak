@@ -9,46 +9,65 @@
 </head>
 
 <body>
-  <h1>CrittersBreak</h1>
-  <div id="tabs">
-	<button id="my-critters-btn">My Critters</button>
-	<button id="settings-btn">Settings</button>
-  </div>
-  <div id="my-critters" class="open">
-	<ul id="critters-list">
-		<li>1</li>
-		<li>2</li>
-		<li>3</li>
-		<li>4</li>
-		<li>5</li>
-		<li>6</li>
-		<li>7</li>
-	</ul>
-	<div id="critter-focus">
-		<div>
-			<h4>Current Balance:</h4>
-			<p>10230</p>
-		</div>
-		<div id="focus-box">
-		</div>
-		<div>
-			<h4>Sir Nyanko</h4>
-			<p>Cost: 500</p>
+	<div id="header">
+		<h1>CrittersBreak</h1>
+		<div id="scoreBox">
+			<img src="../assets/coin.png" alt="" />
+			<p>Coins: 1000</p>
 		</div>
 	</div>
-  </div>
-  <div id="settings">
-	<form>
-		<label for="interval">Break interval (min):</label>
-		<input type="number" id="interval" name="interval" placeholder="25"><br>
-		<label for="duration">Break duration (min):</label>
-		<input type="number" id="duration" name="duration" placeholder="5"><br>
-		<label for="dimming">Enable screen dimming during break:</label>
-		<input type="checkbox" id="dimming" name="dimming" checked><br>
-		<input type="submit" value="Submit">
-		<input type="reset" value="Reset">
-	</form>
-  </div>
+	<div id="content">
+		<div id="tabs">
+			<button id="my-critters-btn" class="selectedTab">My Critters</button>
+			<button id="settings-btn">Settings</button>
+		</div>
+		<div id="my-critters" class="open">
+			<ul id="critters-list">
+				<li>
+					<button>
+						<img src="../assets/critters/sir-teddy/thumbnail.png" />
+					</button>
+				</li>
+				<li>2</li>
+				<li>3</li>
+				<li>4</li>
+				<li>5</li>
+				<li>6</li>
+				<li>7</li>
+			</ul>
+			<div id="critter-focus">
+				<div id="focus-box">
+					<img src="../assets/critters/sir-teddy/thumbnail.png" />
+				</div>
+				<div>
+					<h4>Sir Teddy</h4>
+					<div id="priceTag">
+						<p>Cost: 500</p>
+						<img src="../assets/coin.png" alt="coin" id="coinIcon"/>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="settings">
+			<form>
+				<div class="formItem">
+					<label for="interval">Break interval (min):</label>
+					<input type="number" id="interval" name="interval" value="25"><br>
+				</div>
+				<div class="formItem">
+					<label for="duration">Break duration (min):</label>
+					<input type="number" id="duration" name="duration" value="5"><br>
+				</div>
+				<div class="formItem">
+					<label for="dimming">Enable screen dimming during break:</label>
+					<input type="checkbox" id="dimming" name="dimming" checked><br>
+				</div>
+				<input type="submit" value="Apply" class="settingsButton">
+				<input type="reset" value="Reset" class="settingsButton">
+			</form>
+		</div>
+	</div>
+
 </body>
 
 </html>

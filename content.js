@@ -4,17 +4,14 @@ window.addEventListener('load', (event) => { // run once window has finished loa
     renderTab();
     renderWindow();
     renderDim();
-    startTimer(States.work);
+    loadTimer();
 });
 
-var currentTime = -1; // in seconds
+var currentTime = -2; // in seconds; -1 means new timer, -2 means new page load
 var intervalTimer;
 
-const States = Object.freeze({
-	work: Symbol("work"),
-	break: Symbol("break"),
-})
-var currState = States.work;
+var savedState = -1; // 0: work, 1: break
+var cachedTime = -1;
 
 function renderTab() { // render tab for timer display
     var pixelFont = new FontFace('Pixeloid Sans', 'url("../assets/fonts/PixeloidSans.woff")', { style: 'normal', weight: 'normal' });
@@ -99,7 +96,7 @@ function dimScreen() {
     intervalTimer = setInterval(function () {
         if (op >= 1){
             clearInterval(intervalTimer);
-            startTimer(States.break);
+            startTimer();
         }
         elDim.style.opacity = op;
         elDim.style.filter = 'alpha(opacity=' + op * 100 + ")";
@@ -154,10 +151,28 @@ function hideWindow() {
     }
 }
 
-async function startTimer(state) {
-    var initialTime = await stateToTime(state);
+async function loadTimer() {
+    const result = await getChromeCurrData();
+    if (result?.currentData?.timeLeft != null && result?.currentData?.timeLeft != undefined) {
+        savedState = result.currentData.state;
+        cachedTime = result.currentData.timeLeft;
+    } else {
+        savedState = 0;
+        cachedTime = await stateToTime(savedState);
+    }
+    startTimer();
+}
+
+async function startTimer() {
+    var initialTime = (currentTime == -2) ? cachedTime : await stateToTime(savedState);
+    const currentData = {};
+    currentData.state = savedState;
     let timer = setInterval(function () {
-        if (currentTime == -1) currentTime = initialTime;
+        if (currentTime <= -1) currentTime = initialTime;
+
+        currentData.timeLeft = currentTime;
+        chrome.storage.session.set({currentData});
+
         let minutesNum = (currentTime - (currentTime % 60)) / 60;
         var minutesStr = "" + minutesNum;
         if (minutesNum == 0) minutesStr = "00"
@@ -172,8 +187,8 @@ async function startTimer(state) {
     
         if (currentTime > 0) currentTime--;
         else { // timer goes to zero
-            if (state == States.work) { // transition to break
-                currState = States.break;
+            if (savedState == 0) { // transition to break
+                savedState = 1;
                 document.getElementById("crittersbreak-tab").style.cursor = "pointer";
                 document.getElementById("crittersBreak-timeDisplay").innerHTML = "!!";
                 document.getElementById("crittersbreak-tab").addEventListener("click", revealWindow);
@@ -181,7 +196,7 @@ async function startTimer(state) {
                 document.getElementById("crittersbreak-window").addEventListener("mouseover", dimScreen);
                 document.getElementById("crittersbreak-window").addEventListener("mouseout", brightenScreen);
             } else { // transition to work
-                currState = States.work;
+                savedState = 0;
                 document.getElementById("crittersbreak-tab").style.cursor = "default";
                 document.getElementById("crittersBreak-timeDisplay").innerHTML = "";
                 document.getElementById("crittersbreak-tab").removeEventListener("click", revealWindow);
@@ -191,7 +206,7 @@ async function startTimer(state) {
 
                 brightenScreen();
                 hideWindow();
-                startTimer(States.work);
+                startTimer();
             }
             
             currentTime = -1;
@@ -201,17 +216,24 @@ async function startTimer(state) {
 }
 
 async function stateToTime(state) {
-    const result = await getChromeSettings();
-    if (state == States.work) { // break interval
+    var result = await getChromeSettings();
+    if (state == 0) { // break interval
         return result?.settings?.breakInterval ?? (5);
     } else { // break duration
         return result?.settings?.breakDuration ?? (3);
     }
 }
 
+const getChromeCurrData = () =>
+    new Promise(function (resolve) {
+        chrome.storage.session.get("currentData", function (result) {
+            resolve(result);
+        });
+    });
+
 const getChromeSettings = () =>
     new Promise(function (resolve) {
-        chrome.storage.sync.get("settings", function (result) {
+        chrome.storage.session.get("settings", function (result) {
             resolve(result);
         });
     });

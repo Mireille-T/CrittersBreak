@@ -88,20 +88,25 @@ function renderDim() { // div for dimming screen
     dimDiv.style.zIndex = 2147483645;
 }
 
-function dimScreen() {
+async function dimScreen() {
     clearInterval(intervalTimer);
-    var elDim = document.getElementById("crittersbreak-dim");
-    elDim.style.display = 'block';
-    var op = parseFloat(elDim.style.opacity);  // initial opacity
-    intervalTimer = setInterval(function () {
-        if (op >= 1){
-            clearInterval(intervalTimer);
-            startTimer();
-        }
-        elDim.style.opacity = op;
-        elDim.style.filter = 'alpha(opacity=' + op * 100 + ")";
-        op += 0.05;
-    }, 50);
+    const result = await getChromeSettings();
+    if (result?.settings?.dimming == true) {
+        var elDim = document.getElementById("crittersbreak-dim");
+        elDim.style.display = 'block';
+        var op = parseFloat(elDim.style.opacity);  // initial opacity
+        intervalTimer = setInterval(function () {
+            if (op >= 1){
+                clearInterval(intervalTimer);
+                startTimer();
+            }
+            elDim.style.opacity = op;
+            elDim.style.filter = 'alpha(opacity=' + op * 100 + ")";
+            op += 0.05;
+        }, 50);
+    } else {
+        startTimer();
+    }
 }
 
 function brightenScreen() {
@@ -218,9 +223,9 @@ async function startTimer() {
 async function stateToTime(state) {
     var result = await getChromeSettings();
     if (state == 0) { // break interval
-        return result?.settings?.breakInterval ?? (5);
+        return parseInt(result?.settings?.breakInterval * 60) ?? (5);
     } else { // break duration
-        return result?.settings?.breakDuration ?? (3);
+        return parseInt(result?.settings?.breakDuration * 60) ?? (3);
     }
 }
 
@@ -233,7 +238,7 @@ const getChromeCurrData = () =>
 
 const getChromeSettings = () =>
     new Promise(function (resolve) {
-        chrome.storage.session.get("settings", function (result) {
+        chrome.storage.sync.get("settings", function (result) {
             resolve(result);
         });
     });

@@ -4,11 +4,17 @@ window.addEventListener('load', (event) => { // run once window has finished loa
     renderTab();
     renderWindow();
     renderDim();
+    startTimer(States.work);
 });
 
-var initialTime = 5; // time in seconds
-var currentTime = -1;
-var state = 0; // 0: work, 1: break, 2: other
+var currentTime = -1; // in seconds
+var intervalTimer;
+
+const States = Object.freeze({
+	work: Symbol("work"),
+	break: Symbol("break"),
+})
+var currState = States.work;
 
 function renderTab() { // render tab for timer display
     var pixelFont = new FontFace('Pixeloid Sans', 'url("../assets/fonts/PixeloidSans.woff")', { style: 'normal', weight: 'normal' });
@@ -50,6 +56,7 @@ function renderWindow() { // render window for sprite animation
     // body
     windowDiv.style.backgroundColor = "#ffffff";
     windowDiv.style.color = "#303030";
+    windowDiv.style.opacity = 0;
     windowDiv.style.fontFamily = "Pixeloid Sans";
     windowDiv.style.fontSize = "36px";
     windowDiv.style.position = "fixed";
@@ -58,13 +65,10 @@ function renderWindow() { // render window for sprite animation
     windowDiv.style.width = "240px";
     windowDiv.style.height = "160px";
     windowDiv.style.borderRadius = "5px 0 0 5px";
-    windowDiv.style.display = "flex";
+    windowDiv.style.display = "none";
     windowDiv.style.justifyContent = "center";
     windowDiv.style.alignItems = "center";
     windowDiv.style.zIndex = 2147483647;
-
-    windowDiv.addEventListener("mouseover", dimScreen);
-    windowDiv.addEventListener("mouseout", brightenScreen);
 }
 
 function renderDim() { // div for dimming screen
@@ -88,34 +92,70 @@ function renderDim() { // div for dimming screen
 }
 
 function dimScreen() {
-    element = document.getElementById("crittersbreak-dim");
-    element.style.display = 'block';
-    var op = 0;  // initial opacity
-    var timer = setInterval(function () {
+    clearInterval(intervalTimer);
+    var elDim = document.getElementById("crittersbreak-dim");
+    elDim.style.display = 'block';
+    var op = parseFloat(elDim.style.opacity);  // initial opacity
+    intervalTimer = setInterval(function () {
         if (op >= 1){
-            clearInterval(timer);
+            clearInterval(intervalTimer);
+            startTimer(States.break);
         }
-        element.style.opacity = op;
-        element.style.filter = 'alpha(opacity=' + op * 100 + ")";
+        elDim.style.opacity = op;
+        elDim.style.filter = 'alpha(opacity=' + op * 100 + ")";
         op += 0.05;
     }, 50);
 }
 
 function brightenScreen() {
-    element = document.getElementById("crittersbreak-dim");
-    var op = 1;  // initial opacity
-    var timer = setInterval(function () {
+    clearInterval(intervalTimer);
+    var elDim = document.getElementById("crittersbreak-dim");
+    var op = parseFloat(elDim.style.opacity);  // initial opacity
+    intervalTimer = setInterval(function () {
         if (op <= 0.1){
-            clearInterval(timer);
-            element.style.display = 'none';
+            clearInterval(intervalTimer);
+            elDim.style.display = 'none';
         }
-        element.style.opacity = op;
-        element.style.filter = 'alpha(opacity=' + op * 100 + ")";
+        elDim.style.opacity = op;
+        elDim.style.filter = 'alpha(opacity=' + op * 100 + ")";
         op -= 0.05;
     }, 50);
 }
 
-if (state == 0) {
+function revealWindow() {
+    var elWindow = document.getElementById("crittersbreak-window");
+    if (elWindow.style.opacity < 0.1) {
+        elWindow.style.display = 'flex';
+        var op = parseFloat(elWindow.style.opacity);  // initial opacity
+        var timer = setInterval(function () {
+            if (op >= 1){
+                clearInterval(timer);
+            }
+            elWindow.style.opacity = op;
+            elWindow.style.filter = 'alpha(opacity=' + op * 100 + ")";
+            op += 0.1;
+        }, 50);
+    }
+}
+
+function hideWindow() {
+    var elWindow = document.getElementById("crittersbreak-window");
+    if (elWindow.style.opacity > 0.9) {
+        var op = parseFloat(elWindow.style.opacity);  // initial opacity
+        var timer = setInterval(function () {
+            if (op <= 0.1){
+                clearInterval(timer);
+                elWindow.style.display = 'none';
+            }
+            elWindow.style.opacity = op;
+            elWindow.style.filter = 'alpha(opacity=' + op * 100 + ")";
+            op -= 0.1;
+        }, 50);
+    }
+}
+
+async function startTimer(state) {
+    var initialTime = await stateToTime(state);
     let timer = setInterval(function () {
         if (currentTime == -1) currentTime = initialTime;
         let minutesNum = (currentTime - (currentTime % 60)) / 60;
@@ -128,13 +168,50 @@ if (state == 0) {
         if (secondsNum == 0) secondsStr = "00"
         else if (secondsNum < 10) secondsStr = "0" + secondsStr;
     
-        document.getElementById("crittersBreak-timeDisplay").innerHTML = minutesStr + ":" + secondsStr;
+        if (document.getElementById("crittersBreak-timeDisplay") != null) document.getElementById("crittersBreak-timeDisplay").innerHTML = minutesStr + ":" + secondsStr;
     
         if (currentTime > 0) currentTime--;
         else { // timer goes to zero
-            state = 1;
-            document.getElementById("crittersbreak-tab").style.cursor = "pointer";
-            document.getElementById("crittersBreak-timeDisplay").innerHTML = "!!";
+            if (state == States.work) { // transition to break
+                currState = States.break;
+                document.getElementById("crittersbreak-tab").style.cursor = "pointer";
+                document.getElementById("crittersBreak-timeDisplay").innerHTML = "!!";
+                document.getElementById("crittersbreak-tab").addEventListener("click", revealWindow);
+
+                document.getElementById("crittersbreak-window").addEventListener("mouseover", dimScreen);
+                document.getElementById("crittersbreak-window").addEventListener("mouseout", brightenScreen);
+            } else { // transition to work
+                currState = States.work;
+                document.getElementById("crittersbreak-tab").style.cursor = "default";
+                document.getElementById("crittersBreak-timeDisplay").innerHTML = "";
+                document.getElementById("crittersbreak-tab").removeEventListener("click", revealWindow);
+
+                document.getElementById("crittersbreak-window").removeEventListener("mouseover", dimScreen);
+                document.getElementById("crittersbreak-window").removeEventListener("mouseout", brightenScreen);
+
+                brightenScreen();
+                hideWindow();
+                startTimer(States.work);
+            }
+            
+            currentTime = -1;
+            clearInterval(timer);
         }
     }, 1000);
 }
+
+async function stateToTime(state) {
+    const result = await getChromeSettings();
+    if (state == States.work) { // break interval
+        return result?.settings?.breakInterval ?? (5);
+    } else { // break duration
+        return result?.settings?.breakDuration ?? (3);
+    }
+}
+
+const getChromeSettings = () =>
+    new Promise(function (resolve) {
+        chrome.storage.sync.get("settings", function (result) {
+            resolve(result);
+        });
+    });

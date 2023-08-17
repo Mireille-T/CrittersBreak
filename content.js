@@ -49,6 +49,7 @@ function renderWindow() { // render window for sprite animation
     windowDiv.setAttribute("id", "crittersbreak-window");
     document.body.appendChild(windowDiv);
 
+    windowDiv.innerHTML = '<img id="crittersBreak-animation"></img>'
     // style settings
     // body
     windowDiv.style.backgroundColor = "#ffffff";
@@ -98,14 +99,11 @@ async function dimScreen() {
         intervalTimer = setInterval(function () {
             if (op >= 1){
                 clearInterval(intervalTimer);
-                startTimer();
             }
             elDim.style.opacity = op;
             elDim.style.filter = 'alpha(opacity=' + op * 100 + ")";
             op += 0.05;
         }, 50);
-    } else {
-        startTimer();
     }
 }
 
@@ -195,15 +193,16 @@ async function startTimer() {
             if (savedState == 0) { // transition to break
                 savedState = 1;
                 document.getElementById("crittersbreak-tab").style.cursor = "pointer";
-                document.getElementById("crittersBreak-timeDisplay").innerHTML = "!!";
+                document.getElementById("crittersBreak-timeDisplay").innerHTML = "Break";
                 document.getElementById("crittersbreak-tab").addEventListener("click", revealWindow);
 
                 document.getElementById("crittersbreak-window").addEventListener("mouseover", dimScreen);
                 document.getElementById("crittersbreak-window").addEventListener("mouseout", brightenScreen);
+                startTimer();
             } else { // transition to work
                 savedState = 0;
                 document.getElementById("crittersbreak-tab").style.cursor = "default";
-                document.getElementById("crittersBreak-timeDisplay").innerHTML = "";
+                document.getElementById("crittersBreak-timeDisplay").innerHTML = "Work";
                 document.getElementById("crittersbreak-tab").removeEventListener("click", revealWindow);
 
                 document.getElementById("crittersbreak-window").removeEventListener("mouseover", dimScreen);

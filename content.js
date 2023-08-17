@@ -6,8 +6,9 @@ window.addEventListener('load', (event) => { // run once window has finished loa
     renderDim();
 });
 
-var initialTime = 60; // time in seconds
-var currentTime = 0;
+var initialTime = 5; // time in seconds
+var currentTime = -1;
+var state = 0; // 0: work, 1: break, 2: other
 
 function renderTab() { // render tab for timer display
     var pixelFont = new FontFace('Pixeloid Sans', 'url("../assets/fonts/PixeloidSans.woff")', { style: 'normal', weight: 'normal' });
@@ -17,7 +18,7 @@ function renderTab() { // render tab for timer display
     tabDiv.setAttribute("id", "crittersbreak-tab");
     document.body.appendChild(tabDiv);
 
-    tabDiv.innerHTML = '<p id="crittersBreak-timeDisplay">5:00</p>'
+    tabDiv.innerHTML = '<p id="crittersBreak-timeDisplay"></p>'
     // style settings
     // body
     tabDiv.style.backgroundColor = "#ffffff";
@@ -35,6 +36,7 @@ function renderTab() { // render tab for timer display
     tabDiv.style.alignItems = "center";
     tabDiv.style.userSelect = "none";
     tabDiv.style.zIndex = 2147483646;
+    tabDiv.style.cursor = "default";
 
     document.getElementById("crittersBreak-timeDisplay").style.margin = "0";
 }
@@ -44,7 +46,6 @@ function renderWindow() { // render window for sprite animation
     windowDiv.setAttribute("id", "crittersbreak-window");
     document.body.appendChild(windowDiv);
 
-    // windowDiv.innerHTML = '<p id="crittersBreak-timeDisplay">5:00</p>'
     // style settings
     // body
     windowDiv.style.backgroundColor = "#ffffff";
@@ -114,20 +115,26 @@ function brightenScreen() {
     }, 50);
 }
 
-// To call defined fuction every second
-let timer = setInterval(function () {
-    if (currentTime == 0) currentTime = initialTime;
-    let minutesNum = (currentTime - (currentTime % 60)) / 60;
-    var minutesStr = "" + minutesNum;
-    if (minutesNum == 0) minutesStr = "00"
-    else if (minutesNum < 10) minutesStr = "0" + minutesStr;
-
-    let secondsNum = currentTime - (minutesNum * 60);
-    var secondsStr = "" + secondsNum;
-    if (secondsNum == 0) secondsStr = "00"
-    else if (secondsNum < 10) secondsStr = "0" + secondsStr;
-
-    document.getElementById("crittersBreak-timeDisplay").innerHTML = minutesStr + ":" + secondsStr;
-
-    if (currentTime > 0) currentTime--;
-}, 1000);
+if (state == 0) {
+    let timer = setInterval(function () {
+        if (currentTime == -1) currentTime = initialTime;
+        let minutesNum = (currentTime - (currentTime % 60)) / 60;
+        var minutesStr = "" + minutesNum;
+        if (minutesNum == 0) minutesStr = "00"
+        else if (minutesNum < 10) minutesStr = "0" + minutesStr;
+    
+        let secondsNum = currentTime - (minutesNum * 60);
+        var secondsStr = "" + secondsNum;
+        if (secondsNum == 0) secondsStr = "00"
+        else if (secondsNum < 10) secondsStr = "0" + secondsStr;
+    
+        document.getElementById("crittersBreak-timeDisplay").innerHTML = minutesStr + ":" + secondsStr;
+    
+        if (currentTime > 0) currentTime--;
+        else { // timer goes to zero
+            state = 1;
+            document.getElementById("crittersbreak-tab").style.cursor = "pointer";
+            document.getElementById("crittersBreak-timeDisplay").innerHTML = "!!";
+        }
+    }, 1000);
+}

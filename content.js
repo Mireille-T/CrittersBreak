@@ -15,9 +15,11 @@ var currentState; // 0: work, 1: break
 var currentTime = -1; // in seconds
 var intervalTimer;
 
-function renderTab() { // render tab for timer display
-    var pixelFont = new FontFace('Pixeloid Sans', chrome.runtime.getURL("assets/fonts/PixeloidSans.woff"), { style: 'normal', weight: 'normal' });
-    document.fonts.add(pixelFont);
+async function renderTab() { // render tab for timer display
+    var pixelFont = document.createElement('style');
+    pixelFont.textContent = '@font-face { font-family: Pixeloid Sans;'
+                            + 'src: url("' + chrome.runtime.getURL('assets/fonts/PixeloidSans.woff') + '"); }';
+    document.head.appendChild(pixelFont);
 
     let tabDiv = document.createElement("div");
     tabDiv.setAttribute("id", "crittersbreak-tab");
@@ -26,10 +28,10 @@ function renderTab() { // render tab for timer display
     tabDiv.innerHTML = '<p id="crittersBreak-timeDisplay"></p>'
     // style settings
     // body
-    tabDiv.style.backgroundColor = "#ffffff";
-    tabDiv.style.color = "#303030";
+    tabDiv.style.backgroundColor = "#7d4d83";
+    tabDiv.style.color = "#fff";
     tabDiv.style.fontFamily = "Pixeloid Sans";
-    tabDiv.style.fontSize = "36px";
+    tabDiv.style.fontSize = "20px";
     tabDiv.style.position = "fixed";
     tabDiv.style.right = "0px";
     tabDiv.style.top = "200px";
@@ -37,11 +39,34 @@ function renderTab() { // render tab for timer display
     tabDiv.style.height = "60px";
     tabDiv.style.borderRadius = "5px 0 0 5px";
     tabDiv.style.display = "flex";
+    tabDiv.style.flexDirection = "column";
     tabDiv.style.justifyContent = "center";
     tabDiv.style.alignItems = "center";
     tabDiv.style.userSelect = "none";
     tabDiv.style.zIndex = 2147483646;
     tabDiv.style.cursor = "default";
+
+    let tabText = document.createElement("p");
+    tabText.setAttribute("id", "crittersbreak-tabText");
+    tabDiv.appendChild(tabText);
+    tabText.innerHTML = "Working...";
+    tabText.style.margin = "0";
+    tabText.style.fontSize = "14px";
+
+    let tabIcon = document.createElement("div");
+    tabIcon.setAttribute("id", "crittersbreak-tabIcon");
+    tabDiv.appendChild(tabIcon);
+    tabIcon.innerHTML = "<img src=\""+ chrome.runtime.getURL('assets/critters/sir-teddy/idle/idle-1.png') + "\">";
+    tabIcon.getElementsByTagName("img")[0].style.height = "30px";
+    tabIcon.style.backgroundColor = "#3B1F3F"
+    tabIcon.style.width = "32px";
+    tabIcon.style.height = "32px";
+    tabIcon.style.borderRadius = "100%";
+    tabIcon.style.border = "solid 2px #fff"
+    tabIcon.style.position = "absolute";
+    tabIcon.style.top = "-12px";
+    tabIcon.style.left = "-12px";
+    tabIcon.style.display = "none";
 
     document.getElementById("crittersBreak-timeDisplay").style.margin = "0";
 }
@@ -94,7 +119,7 @@ function renderDim() { // div for dimming screen
 async function dimScreen() {
     clearInterval(intervalTimer);
     const result = await getChromeSettings();
-    if (result?.settings?.dimming == true) {
+    if (result.settings == undefined || result?.settings?.dimming == true) {
         var elDim = document.getElementById("crittersbreak-dim");
         elDim.style.display = 'block';
         var op = parseFloat(elDim.style.opacity);  // initial opacity
@@ -120,8 +145,14 @@ function brightenScreen() {
         }
         elDim.style.opacity = op;
         elDim.style.filter = 'alpha(opacity=' + op * 100 + ")";
-        op -= 0.05;
+        op -= 0.1;
     }, 50);
+}
+
+function toggleWindow() {
+    var elWindow = document.getElementById("crittersbreak-window");
+    if (elWindow.style.display == 'none') revealWindow();
+    else hideWindow();
 }
 
 function revealWindow() {
@@ -196,16 +227,18 @@ async function startTimer(state, time) {
             if (state == 0) { // transition to break
                 state = 1;
                 document.getElementById("crittersbreak-tab").style.cursor = "pointer";
-                document.getElementById("crittersBreak-timeDisplay").innerHTML = "Break";
-                document.getElementById("crittersbreak-tab").addEventListener("click", revealWindow);
+                document.getElementById("crittersbreak-tabText").innerHTML = "Take a break!";
+                document.getElementById("crittersbreak-tabIcon").style.display = "block";
+                document.getElementById("crittersbreak-tab").addEventListener("click", toggleWindow);
 
                 document.getElementById("crittersbreak-window").addEventListener("mouseover", dimScreen);
                 document.getElementById("crittersbreak-window").addEventListener("mouseout", brightenScreen);
             } else { // transition to work
                 state = 0;
                 document.getElementById("crittersbreak-tab").style.cursor = "default";
-                document.getElementById("crittersBreak-timeDisplay").innerHTML = "Work";
-                document.getElementById("crittersbreak-tab").removeEventListener("click", revealWindow);
+                document.getElementById("crittersbreak-tabText").innerHTML = "Working...";
+                document.getElementById("crittersbreak-tabIcon").style.display = "none";
+                document.getElementById("crittersbreak-tab").removeEventListener("click", toggleWindow);
 
                 document.getElementById("crittersbreak-window").removeEventListener("mouseover", dimScreen);
                 document.getElementById("crittersbreak-window").removeEventListener("mouseout", brightenScreen);

@@ -24,22 +24,24 @@ function renderTab() { // render tab for timer display
     tabDiv.innerHTML = '<p id="crittersBreak-timeDisplay"></p>'
     // style settings
     // body
-    tabDiv.style.backgroundColor = "#ffffff";
-    tabDiv.style.color = "#303030";
+    tabDiv.style.backgroundColor = "#3B1F3F";
+    tabDiv.style.color = "#fff";
     tabDiv.style.fontFamily = "Pixeloid Sans";
-    tabDiv.style.fontSize = "36px";
+    tabDiv.style.fontSize = "24px";
     tabDiv.style.position = "fixed";
     tabDiv.style.right = "0px";
     tabDiv.style.top = "200px";
     tabDiv.style.width = "120px";
     tabDiv.style.height = "60px";
-    tabDiv.style.borderRadius = "5px 0 0 5px";
+    tabDiv.style.borderRadius = "8px 0 0 8px";
     tabDiv.style.display = "flex";
     tabDiv.style.justifyContent = "center";
     tabDiv.style.alignItems = "center";
     tabDiv.style.userSelect = "none";
     tabDiv.style.zIndex = 2147483646;
     tabDiv.style.cursor = "default";
+    tabDiv.style.boxShadow = "rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px"
+    tabDiv.style.padding = "8px";
 
     document.getElementById("crittersBreak-timeDisplay").style.margin = "0";
 }

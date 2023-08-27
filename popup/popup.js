@@ -1,6 +1,6 @@
 const settings = {}; // in-page cache of setting changes
 
-window.addEventListener("load", event => {
+window.addEventListener("load", async event => {
     revertSettings();
 
     document.getElementById("my-critters-btn").addEventListener("click", function(){
@@ -9,8 +9,16 @@ window.addEventListener("load", event => {
     document.getElementById("settings-btn").addEventListener("click", function(){
         openTab("settings")
     });
-    document.querySelector('input[type=button]').addEventListener("click", saveSettings);
+    document.querySelector('input[type=submit]').addEventListener("click", saveSettings);
     document.querySelector('input[type=reset]').addEventListener("click", revertSettings);
+
+    // async stuff below; anything
+    var state = await chrome.runtime.sendMessage({ getState: true });
+    if (state != -1) { // already a timer running; cannot start timer
+        document.querySelector('input[type=button]').classList.add("disabled");
+    } else {
+        document.querySelector('input[type=button]').addEventListener("click", startContent);
+    }
 })
 
 function openTab(tabName) {
@@ -50,4 +58,12 @@ function saveSettings() {
     settings.breakDuration = document.getElementById("duration").value;
     settings.dimming = document.getElementById("dimming").checked;
     chrome.storage.sync.set({settings});
+}
+
+function startContent() {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, { startContent: true });
+    });
+    document.querySelector('input[type=button]').removeEventListener("click", startContent);
+    document.querySelector('input[type=button]').classList.add("disabled");
 }

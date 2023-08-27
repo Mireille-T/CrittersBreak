@@ -1,11 +1,25 @@
 chrome.runtime.sendMessage({ todo: "showPageAction" });
 
-window.addEventListener('load', (event) => { // run once window has finished loading
+chrome.runtime.onMessage.addListener(
+    function(message, sender, sendResponse) {
+        if (message.startContent == true) {
+            renderTab();
+            renderWindow();
+            renderDim();
+            loadTimer();
+        }
+    }
+);
+
+window.addEventListener('load', async (event) => { // run once window has finished loading
     if (chrome.runtime.id == undefined) return; // to prevent Uncaught Error: Extension context invalidated
-    renderTab();
-    renderWindow();
-    renderDim();
-    loadTimer();
+    var result = await chrome.runtime.sendMessage({ getState: true });
+    if (result != -1) { // there is already a timer running; load extension content instead of waiting for start timer
+        renderTab();
+        renderWindow();
+        renderDim();
+        loadTimer();
+    }
 });
 
 const defaultBreakInterval = 25 * 60;

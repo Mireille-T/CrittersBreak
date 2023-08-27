@@ -12,7 +12,6 @@ chrome.runtime.onMessage.addListener(
             state = message.timerState;
             timer = setInterval(async function () {
                 time--;
-                console.log(time);
                 if (time < 0) clearInterval(timer);
             }, 1000);
         }

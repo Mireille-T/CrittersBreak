@@ -117,6 +117,33 @@ button {
     display: flex;
 }
 
+#my-critters .secButton {
+    background: none;
+    border: 2px solid #fff;
+    margin-top: 12px;
+    margin-right: 12px;
+    color: #fff;
+    font-family: 'Pixeloid Sans';
+    padding: 4px 16px;
+    cursor: pointer;
+}
+
+#my-critters .secButton:hover {
+    background: #fff;
+    color: var(--bg-color);
+}
+
+#my-critters .secButton.disabled {
+    border: 2px solid var(--button-bg-highlight);
+    color: var(--button-bg-highlight);
+    cursor: not-allowed;
+}
+
+#my-critters .secButton.disabled:hover {
+    background: none;
+    color: var(--button-bg-highlight);
+}
+
 #critters-list {
     display: flex;
     flex-direction: row;

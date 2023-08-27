@@ -22,19 +22,22 @@
 			<button id="settings-btn">Settings</button>
 		</div>
 		<div id="my-critters" class="open">
-			<ul id="critters-list">
-				<li>
-					<button>
-						<img src="../assets/critters/sir-teddy/thumbnail.png" />
-					</button>
-				</li>
-				<li>2</li>
-				<li>3</li>
-				<li>4</li>
-				<li>5</li>
-				<li>6</li>
-				<li>7</li>
-			</ul>
+			<div>
+				<ul id="critters-list">
+					<li>
+						<button>
+							<img src="../assets/critters/sir-teddy/thumbnail.png" />
+						</button>
+					</li>
+					<li>2</li>
+					<li>3</li>
+					<li>4</li>
+					<li>5</li>
+					<li>6</li>
+					<li>7</li>
+				</ul>
+				<input type="button" value="Start Timer" class="secButton">
+			</div>
 			<div id="critter-focus">
 				<div id="focus-box">
 					<img src="../assets/critters/sir-teddy/thumbnail.png" />
@@ -62,7 +65,7 @@
 					<label for="dimming">Enable screen dimming during break:</label>
 					<input type="checkbox" id="dimming" name="dimming" checked><br>
 				</div>
-				<input type="button" value="Apply" class="settingsButton">
+				<input type="submit" value="Apply" class="settingsButton">
 				<input type="reset" value="Reset" class="settingsButton">
 			</form>
 		</div>

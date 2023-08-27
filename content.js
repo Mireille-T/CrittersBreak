@@ -208,22 +208,22 @@ async function startTimer() {
         if (chrome.runtime.id == undefined) return; // to prevent Uncaught Error: Extension context invalidated
         time = await chrome.runtime.sendMessage({ getTime: true });
 
-        // Calculate minutes
-        let minutesNum = (time - (time % 60)) / 60;
-        var minutesStr = "" + minutesNum;
-        if (minutesNum == 0) minutesStr = "00"
-        else if (minutesNum < 10) minutesStr = "0" + minutesStr;
-    
-        // Calculate seconds
-        let secondsNum = time - (minutesNum * 60);
-        var secondsStr = "" + secondsNum;
-        if (secondsNum == 0) secondsStr = "00"
-        else if (secondsNum < 10) secondsStr = "0" + secondsStr;
-    
-        // Update display with time
-        if (document.getElementById("crittersBreak-timeDisplay") != null) document.getElementById("crittersBreak-timeDisplay").innerHTML = minutesStr + ":" + secondsStr;
-
-        if (time <= 0) { // timer goes to zero
+        if (time >= 0) {
+            // Calculate minutes
+            let minutesNum = (time - (time % 60)) / 60;
+            var minutesStr = "" + minutesNum;
+            if (minutesNum == 0) minutesStr = "00"
+            else if (minutesNum < 10) minutesStr = "0" + minutesStr;
+        
+            // Calculate seconds
+            let secondsNum = time - (minutesNum * 60);
+            var secondsStr = "" + secondsNum;
+            if (secondsNum == 0) secondsStr = "00"
+            else if (secondsNum < 10) secondsStr = "0" + secondsStr;
+        
+            // Update display with time
+            if (document.getElementById("crittersBreak-timeDisplay") != null) document.getElementById("crittersBreak-timeDisplay").innerHTML = minutesStr + ":" + secondsStr;
+        } else { // timer goes to zero
             var state = await chrome.runtime.sendMessage({ getState: true });
             if (state == 0) { // transition to break
                 toBreak();

@@ -1,18 +1,30 @@
-chrome.runtime.sendMessage({ todo: "showPageAction" }); //ensure extension loads
+chrome.runtime.sendMessage({ todo: "showPageAction" });
 
-window.addEventListener('load', (event) => { // run once window has finished loading
+chrome.runtime.onMessage.addListener(
+    function(message, sender, sendResponse) {
+        if (message.startContent == true) {
+            renderTab();
+            renderWindow();
+            renderDim();
+            loadTimer();
+        }
+    }
+);
+
+window.addEventListener('load', async (event) => { // run once window has finished loading
     if (chrome.runtime.id == undefined) return; // to prevent Uncaught Error: Extension context invalidated
-    renderTab();
-    renderWindow();
-    renderDim();
-    loadTimer();
+    var result = await chrome.runtime.sendMessage({ getState: true });
+    if (result != -1) { // there is already a timer running; load extension content instead of waiting for start timer
+        renderTab();
+        renderWindow();
+        renderDim();
+        loadTimer();
+    }
 });
 
 const defaultBreakInterval = 0.1 * 60; //duration for working state
 const defaultBreakDuration = 5 * 60;
 
-var currentState; // 0: work, 1: break
-var currentTime = -1; // in seconds
 var intervalTimer;
 
 async function renderTab() { // render tab for timer display
@@ -189,70 +201,79 @@ function hideWindow() {
     }
 }
 
-async function loadTimer() { //timer on standby, called once when page first loads
-    var result = await getChromeCurrData();
-    if (result?.currentData?.timeLeft != null && result?.currentData?.timeLeft != undefined && result?.currentData?.timeLeft != NaN) { // if saved time data from another page exists
-        currentState = result.currentData.state;
-        currentTime = result.currentData.timeLeft;
-    } else { // use defaults
-        currentState = 0;
-        currentTime = await stateToTime(currentState); // i.e. default break interval
+async function loadTimer() {
+    var result = await chrome.runtime.sendMessage({ getState: true });
+    if (result == -1) {
+        // start service worker timer + use defaults
+        chrome.runtime.sendMessage({ startTimer: true, timerState: 0, timerTime: await stateToTime(0) });
+    } else {
+        // update DOM to reflect current state
+        if (result == 0) {
+            toWork();
+        } else {
+            toBreak();
+        }
     }
-    startTimer(currentState, currentTime);
+    startTimer();
 }
 
-async function startTimer(state, time) { // called repeartedly
-    const currentData = {}; //saved to storage every second
-    currentData.state = state;
+async function startTimer() {
     let timer = setInterval(async function () {
         if (chrome.runtime.id == undefined) return; // to prevent Uncaught Error: Extension context invalidated
-        currentData.timeLeft = time; 
-        chrome.storage.session.set({currentData}); //save time left to storage
+        time = await chrome.runtime.sendMessage({ getTime: true });
 
-        // Calculate minutes
-        let minutesNum = (time - (time % 60)) / 60;
-        var minutesStr = "" + minutesNum;
-        if (minutesNum == 0) minutesStr = "00"
-        else if (minutesNum < 10) minutesStr = "0" + minutesStr;
-    
-        // Calculate seconds
-        let secondsNum = time - (minutesNum * 60);
-        var secondsStr = "" + secondsNum;
-        if (secondsNum == 0) secondsStr = "00"
-        else if (secondsNum < 10) secondsStr = "0" + secondsStr;
-    
-        // Update display with time
-        if (document.getElementById("crittersBreak-timeDisplay") != null) document.getElementById("crittersBreak-timeDisplay").innerHTML = minutesStr + ":" + secondsStr;
-    
-        if (time > 0) time--; //timer decreases by one second
-        else { // timer goes to zero
+        if (time >= 0) {
+            // Calculate minutes
+            let minutesNum = (time - (time % 60)) / 60;
+            var minutesStr = "" + minutesNum;
+            if (minutesNum == 0) minutesStr = "00"
+            else if (minutesNum < 10) minutesStr = "0" + minutesStr;
+        
+            // Calculate seconds
+            let secondsNum = time - (minutesNum * 60);
+            var secondsStr = "" + secondsNum;
+            if (secondsNum == 0) secondsStr = "00"
+            else if (secondsNum < 10) secondsStr = "0" + secondsStr;
+        
+            // Update display with time
+            if (document.getElementById("crittersBreak-timeDisplay") != null) document.getElementById("crittersBreak-timeDisplay").innerHTML = minutesStr + ":" + secondsStr;
+        } else { // timer goes to zero
+            var state = await chrome.runtime.sendMessage({ getState: true });
             if (state == 0) { // transition to break
-                state = 1;
-                document.getElementById("crittersbreak-tab").style.cursor = "pointer";
-                document.getElementById("crittersbreak-tabText").innerHTML = "Take a break!"; //for the tab
-                document.getElementById("crittersbreak-tabIcon").style.display = "block";
-                document.getElementById("crittersbreak-tab").addEventListener("click", toggleWindow);
-
-                document.getElementById("crittersbreak-window").addEventListener("mouseover", dimScreen);
-                document.getElementById("crittersbreak-window").addEventListener("mouseout", brightenScreen);
+                toBreak();
+                chrome.runtime.sendMessage({ startTimer: true, timerState: 1, timerTime: await stateToTime(1) });
             } else { // transition to work
-                state = 0;
-                document.getElementById("crittersbreak-tab").style.cursor = "default";
-                document.getElementById("crittersbreak-tabText").innerHTML = "Working...";
-                document.getElementById("crittersbreak-tabIcon").style.display = "none";
-                document.getElementById("crittersbreak-tab").removeEventListener("click", toggleWindow);
-
-                document.getElementById("crittersbreak-window").removeEventListener("mouseover", dimScreen);
-                document.getElementById("crittersbreak-window").removeEventListener("mouseout", brightenScreen);
-
-                brightenScreen(); //force screen to brighten
-                hideWindow(); //force break window to close
+                toWork();
+                chrome.runtime.sendMessage({ startTimer: true, timerState: 0, timerTime: await stateToTime(0) });
             }
 
-            clearInterval(timer); //clear prev timer
-            startTimer(state, await stateToTime(state)); //restart timer
+            clearInterval(timer);
+            startTimer();
         }
-    }, 1000);
+    }, 100); // more frequent refresh rate in case of lag
+}
+
+function toBreak() { // switch to "break" mode
+    document.getElementById("crittersbreak-tab").style.cursor = "pointer";
+    document.getElementById("crittersbreak-tabText").innerHTML = "Take a break!";
+    document.getElementById("crittersbreak-tabIcon").style.display = "block";
+    document.getElementById("crittersbreak-tab").addEventListener("click", toggleWindow);
+
+    document.getElementById("crittersbreak-window").addEventListener("mouseover", dimScreen);
+    document.getElementById("crittersbreak-window").addEventListener("mouseout", brightenScreen);
+}
+
+function toWork() { // switch to "work" mode
+    document.getElementById("crittersbreak-tab").style.cursor = "default";
+    document.getElementById("crittersbreak-tabText").innerHTML = "Working...";
+    document.getElementById("crittersbreak-tabIcon").style.display = "none";
+    document.getElementById("crittersbreak-tab").removeEventListener("click", toggleWindow);
+
+    document.getElementById("crittersbreak-window").removeEventListener("mouseover", dimScreen);
+    document.getElementById("crittersbreak-window").removeEventListener("mouseout", brightenScreen);
+
+    brightenScreen();
+    hideWindow();
 }
 
 async function stateToTime(state) { // retrieves the duration for the given state, based on user settings
@@ -263,13 +284,6 @@ async function stateToTime(state) { // retrieves the duration for the given stat
         return (result.settings != undefined) ? parseInt(result.settings.breakDuration * 60) : defaultBreakDuration;
     }
 }
-
-const getChromeCurrData = () => // Get the saved state and timing (from other pages) from Chrome storage
-    new Promise(function (resolve) {
-        chrome.storage.session.get("currentData", function (result) {
-            resolve(result);
-        });
-    });
 
 const getChromeSettings = () => // Get user setings from Chrome storage
     new Promise(function (resolve) {

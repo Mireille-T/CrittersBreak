@@ -1,4 +1,4 @@
-chrome.runtime.sendMessage({ todo: "showPageAction" });
+chrome.runtime.sendMessage({ todo: "showPageAction" }); //ensure extension loads
 
 window.addEventListener('load', (event) => { // run once window has finished loading
     if (chrome.runtime.id == undefined) return; // to prevent Uncaught Error: Extension context invalidated
@@ -8,7 +8,7 @@ window.addEventListener('load', (event) => { // run once window has finished loa
     loadTimer();
 });
 
-const defaultBreakInterval = 25 * 60;
+const defaultBreakInterval = 0.1 * 60; //duration for working state
 const defaultBreakDuration = 5 * 60;
 
 var currentState; // 0: work, 1: break
@@ -126,7 +126,7 @@ async function dimScreen() {
         elDim.style.display = 'block';
         var op = parseFloat(elDim.style.opacity);  // initial opacity
         intervalTimer = setInterval(function () {
-            if (op >= 1){
+            if (op >= 0.95){
                 clearInterval(intervalTimer);
             }
             elDim.style.opacity = op;
@@ -189,9 +189,9 @@ function hideWindow() {
     }
 }
 
-async function loadTimer() {
+async function loadTimer() { //timer on standby, called once when page first loads
     var result = await getChromeCurrData();
-    if (result?.currentData?.timeLeft != null && result?.currentData?.timeLeft != undefined && result?.currentData?.timeLeft != NaN) { // if saved data from another page exists
+    if (result?.currentData?.timeLeft != null && result?.currentData?.timeLeft != undefined && result?.currentData?.timeLeft != NaN) { // if saved time data from another page exists
         currentState = result.currentData.state;
         currentTime = result.currentData.timeLeft;
     } else { // use defaults
@@ -201,13 +201,13 @@ async function loadTimer() {
     startTimer(currentState, currentTime);
 }
 
-async function startTimer(state, time) {
-    const currentData = {};
+async function startTimer(state, time) { // called repeartedly
+    const currentData = {}; //saved to storage every second
     currentData.state = state;
     let timer = setInterval(async function () {
         if (chrome.runtime.id == undefined) return; // to prevent Uncaught Error: Extension context invalidated
-        currentData.timeLeft = time;
-        chrome.storage.session.set({currentData});
+        currentData.timeLeft = time; 
+        chrome.storage.session.set({currentData}); //save time left to storage
 
         // Calculate minutes
         let minutesNum = (time - (time % 60)) / 60;
@@ -224,12 +224,12 @@ async function startTimer(state, time) {
         // Update display with time
         if (document.getElementById("crittersBreak-timeDisplay") != null) document.getElementById("crittersBreak-timeDisplay").innerHTML = minutesStr + ":" + secondsStr;
     
-        if (time > 0) time--;
+        if (time > 0) time--; //timer decreases by one second
         else { // timer goes to zero
             if (state == 0) { // transition to break
                 state = 1;
                 document.getElementById("crittersbreak-tab").style.cursor = "pointer";
-                document.getElementById("crittersbreak-tabText").innerHTML = "Take a break!";
+                document.getElementById("crittersbreak-tabText").innerHTML = "Take a break!"; //for the tab
                 document.getElementById("crittersbreak-tabIcon").style.display = "block";
                 document.getElementById("crittersbreak-tab").addEventListener("click", toggleWindow);
 
@@ -245,12 +245,12 @@ async function startTimer(state, time) {
                 document.getElementById("crittersbreak-window").removeEventListener("mouseover", dimScreen);
                 document.getElementById("crittersbreak-window").removeEventListener("mouseout", brightenScreen);
 
-                brightenScreen();
-                hideWindow();
+                brightenScreen(); //force screen to brighten
+                hideWindow(); //force break window to close
             }
 
-            clearInterval(timer);
-            startTimer(state, await stateToTime(state));
+            clearInterval(timer); //clear prev timer
+            startTimer(state, await stateToTime(state)); //restart timer
         }
     }, 1000);
 }

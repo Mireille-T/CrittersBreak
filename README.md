@@ -2,4 +2,4 @@
 
 **Project Type:** Prototype Sprint
 
-**Problem Description:** TBD
+**Project Description:** A browser add-on to incentivise breaks from screentime through the use of critters!

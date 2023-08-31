@@ -27,6 +27,9 @@ const defaultBreakDuration = 5 * 60;
 
 var intervalTimer;
 
+const rewardInterval = 10000; //10 seconds
+var rewardTimer;
+
 async function renderTab() { // render tab for timer display
     var pixelFont = document.createElement('style');
     pixelFont.textContent = '@font-face { font-family: Pixeloid Sans;'
@@ -46,7 +49,7 @@ async function renderTab() { // render tab for timer display
     tabDiv.style.fontSize = "20px";
     tabDiv.style.position = "fixed";
     tabDiv.style.right = "0px";
-    tabDiv.style.top = "200px";
+    tabDiv.style.top = "320px";
     tabDiv.style.width = "120px";
     tabDiv.style.height = "60px";
     tabDiv.style.borderRadius = "8px 0 0 8px";
@@ -70,7 +73,7 @@ async function renderTab() { // render tab for timer display
     let tabIcon = document.createElement("div");
     tabIcon.setAttribute("id", "crittersbreak-tabIcon");
     tabDiv.appendChild(tabIcon);
-    tabIcon.innerHTML = "<img src=\""+ chrome.runtime.getURL('assets/critters/sir-teddy/idle/idle-1.png') + "\">";
+    tabIcon.innerHTML = "<img src=\""+ chrome.runtime.getURL('assets/critters/sir-teddy/thumbnail.png') + "\">";
     tabIcon.getElementsByTagName("img")[0].style.height = "30px";
     tabIcon.style.backgroundColor = "#3B1F3F"
     tabIcon.style.width = "32px";
@@ -93,8 +96,8 @@ function renderWindow() { // render window for sprite animation
     windowDiv.innerHTML = '<img id="crittersBreak-animation"></img>'
     // style settings
     // body
-    windowDiv.style.backgroundColor = "#ffffff";
-    windowDiv.style.color = "#303030";
+    windowDiv.style.background = "#3B1F3F";
+    windowDiv.style.color = "#ffffff";
     windowDiv.style.opacity = 0;
     windowDiv.style.fontFamily = "Pixeloid Sans";
     windowDiv.style.fontSize = "36px";
@@ -102,12 +105,131 @@ function renderWindow() { // render window for sprite animation
     windowDiv.style.right = "0px";
     windowDiv.style.top = "20px";
     windowDiv.style.width = "240px";
-    windowDiv.style.height = "160px";
+    windowDiv.style.height = "240px";
+    windowDiv.style.padding = "10px";
+    windowDiv.style.boxSizing = "border-box"
     windowDiv.style.borderRadius = "5px 0 0 5px";
     windowDiv.style.display = "none";
-    windowDiv.style.justifyContent = "center";
+    windowDiv.style.flexDirection = "column"
+    windowDiv.style.justifyContent = "space-between";
     windowDiv.style.alignItems = "center";
+    windowDiv.style.boxShadow = "rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px"
     windowDiv.style.zIndex = 2147483647;
+
+    let closeButton = document.createElement("div");
+    windowDiv.appendChild(closeButton);
+    closeButton.innerHTML = `<p>x</p>`
+    closeButton.getElementsByTagName("p")[0].style.margin = "0";
+    closeButton.style.display = "flex";
+    closeButton.style.justifyContent = "center";
+    closeButton.style.alignItems = "center";
+    closeButton.style.background = "#7d4d83";
+    closeButton.style.width = "32px";
+    closeButton.style.height = "32px";
+    closeButton.style.cursor = "pointer"
+    closeButton.style.borderRadius = "100%";
+    closeButton.style.border = "solid 2px #fff"
+    closeButton.style.position = "absolute";
+    closeButton.style.top = "-12px";
+    closeButton.style.left = "-12px";
+    closeButton.style.fontSize = "14px";
+    closeButton.addEventListener("click", hideWindow);
+
+    let critterBox = document.createElement("div");
+    critterBox.style.background = "#7d4d83"
+    critterBox.style.width = "100%";
+    critterBox.style.height = "140px";
+    critterBox.style.borderRadius = "4px";
+    critterBox.style.position = "relative";
+    critterBox.style.display = "flex";
+    critterBox.style.justifyContent = "center";
+    critterBox.style.alignItems = "center";
+    critterBox.style.cursor = "none";
+    critterBox.setAttribute("id", "crittersbreak-critterBox")
+    windowDiv.appendChild(critterBox);
+
+    let scoreDiv = document.createElement("div");
+    scoreDiv.style.background = "#3B1F3F";
+    scoreDiv.style.display = "flex";
+    scoreDiv.style.justifyContent = "center";
+    scoreDiv.style.alignItems = "center";
+    scoreDiv.style.position = "absolute"
+    scoreDiv.style.right = "12px";
+    scoreDiv.style.top = "12px";
+    scoreDiv.style.padding = " 2px 8px"
+    scoreDiv.style.width = "60px";
+    scoreDiv.style.borderRadius = "4px";
+    critterBox.appendChild(scoreDiv);
+
+    let scoreText =  document.createElement("p");
+    scoreText.innerHTML = "+0";
+    scoreText.style.fontSize = "14px"
+    scoreText.style.margin = "0";
+    scoreText.setAttribute("id", "crittersbreak-scoreText")
+    scoreDiv.appendChild(scoreText);
+    
+    let coinIcon = document.createElement("img");
+    coinIcon.src = chrome.runtime.getURL('assets/coin.png');
+    coinIcon.style.height = "16px"
+    coinIcon.style.width = "16px"
+    scoreDiv.appendChild(coinIcon);
+    
+    let windowInstructions = document.createElement("p");
+    windowInstructions.innerHTML = "Take a break! Place your cursor in the box above. \n (You may remove your cursor anytime)"
+    windowInstructions.setAttribute("id", "crittersbreak-windowInstructions");
+    windowInstructions.style.textAlign = "center";
+    windowInstructions.style.fontSize = "12px";
+    windowDiv.appendChild(windowInstructions);
+
+
+
+    let critterSprite = document.createElement("img");
+    critterSprite.src = chrome.runtime.getURL('assets/critters/sir-teddy/idle.gif');
+    critterSprite.style.height = "60%";
+    critterSprite.style.transform = "translateY(20px)";
+    critterSprite.setAttribute("id", "crittersbreak-critterSprite")
+    critterBox.appendChild(critterSprite);
+
+    critterBox.addEventListener("mouseover", function () {
+        mouseOnCritter();
+    })
+
+    critterBox.addEventListener("mouseout", function () {
+        mouseOffCritter();
+    })
+
+
+}
+
+function mouseOnCritter() {
+    let sprite = document.getElementById("crittersbreak-critterSprite");
+    sprite.src = chrome.runtime.getURL('assets/critters/sir-teddy/playing.gif');
+    rewardTimer = setInterval(() => {
+        chrome.storage.sync.get("coins").then((result) => {
+            if (result.coins === undefined) {
+                chrome.storage.sync.set({coins: 2});
+            } else {
+                chrome.storage.sync.set({coins: result.coins + 2});
+            }
+
+            chrome.storage.sync.get("coinsEarned").then((result) => {
+                if (result.coinsEarned === undefined) {
+                    chrome.storage.sync.set({coinsEarned: 2});
+                    document.getElementById("crittersbreak-scoreText").innerHTML = "+2";
+                } else {
+                    chrome.storage.sync.set({coinsEarned: result.coinsEarned + 2});
+                    document.getElementById("crittersbreak-scoreText").innerHTML = `+${result.coinsEarned + 2}`;
+
+                }
+            })
+        })
+    }, rewardInterval);
+}
+
+function mouseOffCritter() {
+    let sprite = document.getElementById("crittersbreak-critterSprite");
+    sprite.src = chrome.runtime.getURL('assets/critters/sir-teddy/idle.gif');
+    clearInterval(rewardTimer);
 }
 
 function renderDim() { // div for dimming screen
@@ -259,8 +381,8 @@ function toBreak() { // switch to "break" mode
     document.getElementById("crittersbreak-tabIcon").style.display = "block";
     document.getElementById("crittersbreak-tab").addEventListener("click", toggleWindow);
 
-    document.getElementById("crittersbreak-window").addEventListener("mouseover", dimScreen);
-    document.getElementById("crittersbreak-window").addEventListener("mouseout", brightenScreen);
+    document.getElementById("crittersbreak-critterBox").addEventListener("mouseover", dimScreen);
+    document.getElementById("crittersbreak-critterBox").addEventListener("mouseout", brightenScreen);
 }
 
 function toWork() { // switch to "work" mode

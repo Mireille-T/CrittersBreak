@@ -22,6 +22,7 @@ var activeCritter = 0
 window.addEventListener("load", async event => {
     revertSettings();
     initCritterList();
+    retrieveCoins();
     document.getElementById("my-critters-btn").addEventListener("click", function () {
         openTab("my-critters")
     });
@@ -33,7 +34,7 @@ window.addEventListener("load", async event => {
     document.querySelector('input[type=reset]').addEventListener("click", revertSettings);
 
     // async stuff below; anything
-    var state = await chrome.runtime.sendMessage({ getState: true });
+    state = await chrome.runtime.sendMessage({ getState: true });
     if (state != -1) { // already a timer running; cannot start timer
         document.querySelector('input[type=button]').classList.add("disabled");
     } else {
@@ -86,24 +87,20 @@ function startContent() {
     });
     document.querySelector('input[type=button]').removeEventListener("click", startContent);
     document.querySelector('input[type=button]').classList.add("disabled");
+    chrome.storage.sync.set({coinsEarned: 0});
 }
 
-/*const getCritterList = () => {
-    new Promise(function (resolve) {
-        chrome.storage.sync.get("critters", function (result) {
-            resolve(result);
-        });
-    });
-}
-
-
-const getActiveCritter = () => {
-    new Promise(function (resolve) {
-        chrome.storage.sync.get("activeCritter", function (result) {
-            resolve(result);
-        })
+const retrieveCoins = () => {
+    chrome.storage.sync.get("coins").then((result) => {
+        
+        if (result.coins === undefined) {
+            document.getElementById("coinText").innerHTML = `Coins: 0`
+            chrome.storage.sync.set({ coins: 0 })
+        } else {
+            document.getElementById("coinText").innerHTML = `Coins: ${result.coins}`
+        }
     })
-}*/
+}
 
 const updateActiveCritter = (newCritter) => {
     document.getElementsByClassName("active")[0].classList.toggle("active");

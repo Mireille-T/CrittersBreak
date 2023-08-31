@@ -5,15 +5,15 @@
 	"manifest_version": 3,
 	"description": "A browser addon to incentivise taking breaks feat. tiny critters!",
 	"icons":{
-	 "16": "assets/critters/sir-teddy/idle/idle-1.png",
-	 "32": "assets/critters/sir-teddy/idle/idle-1.png",
-	 "48": "assets/critters/sir-teddy/idle/idle-1.png",
-	 "128":"assets/critters/sir-teddy/idle/idle-1.png"
+	 "16": "assets/critters/sir-teddy/thumbnail.png",
+	 "32": "assets/critters/sir-teddy/thumbnail.png",
+	 "48": "assets/critters/sir-teddy/thumbnail.png",
+	 "128":"assets/critters/sir-teddy/thumbnail.png"
 	},
 	"content_security_policy": {
 	},
 	"action":{
-		"default_icon": "assets/critters/sir-teddy/idle/idle-1.png",
+		"default_icon": "assets/critters/sir-teddy/thumbnail.png",
 		"default_popup":"popup/popup.html",
 		"default_title":"CrittersBreak"
 	},

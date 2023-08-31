@@ -22,8 +22,8 @@ window.addEventListener('load', async (event) => { // run once window has finish
     }
 });
 
-const defaultBreakInterval = 0.1 * 60; //duration for working state
-const defaultBreakDuration = 5 * 60;
+const defaultBreakInterval = 25 * 60; //duration for working state
+const defaultBreakDuration = 5 * 60; //duration for break state
 
 var intervalTimer;
 
@@ -278,7 +278,7 @@ async function dimScreen() {
         elDim.style.display = 'block';
         var op = parseFloat(elDim.style.opacity);  // initial opacity
         intervalTimer = setInterval(function () {
-            if (op >= 0.95) {
+            if (op >= 0.90) {
                 clearInterval(intervalTimer);
             }
             elDim.style.opacity = op;

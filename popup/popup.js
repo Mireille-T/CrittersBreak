@@ -101,6 +101,12 @@ function revertSettings() {
         }
 
         try {
+            document.getElementById("cycles").value = result.settings.cyclesNum;
+        } catch (error) {
+            document.getElementById("cycles").value = 5;
+        }
+
+        try {
             document.getElementById("dimming").checked = result.settings.dimming;
         } catch (error) {
             document.getElementById("dimming").checked = true;
@@ -111,6 +117,7 @@ function revertSettings() {
 function saveSettings() {
     settings.breakInterval = document.getElementById("interval").value;
     settings.breakDuration = document.getElementById("duration").value;
+    settings.cyclesNum = document.getElementById("cycles").value;
     settings.dimming = document.getElementById("dimming").checked;
     chrome.storage.sync.set({ settings });
 }
@@ -124,6 +131,7 @@ function startContent() {
     document.getElementById("startButton").value = "Session has started"
 
     chrome.storage.sync.set({ coinsEarned: 0 });
+    chrome.storage.sync.set({ currCycle: 0 })
 }
 
 const retrieveCoins = () => {

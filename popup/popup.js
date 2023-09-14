@@ -52,6 +52,14 @@ window.addEventListener("load", async event => {
     }
 })
 
+chrome.runtime.onMessage.addListener(
+    function (message, sender, sendResponse) {
+        if (message.endContent == true) {
+            endContent();
+        }
+    }
+)
+
 function buyCritter() {
     var critterIndex;
     chrome.storage.sync.get("activeCritter").then((result) => {
@@ -132,6 +140,15 @@ function startContent() {
 
     chrome.storage.sync.set({ coinsEarned: 0 });
     chrome.storage.sync.set({ currCycle: 0 })
+    
+}
+
+function endContent() {
+    document.querySelector('input[type=button]').addEventListener("click", startContent);
+    document.querySelector('input[type=button]').classList.remove("disabled");
+    document.getElementById("startButton").value = "Start Session"
+
+    
 }
 
 const retrieveCoins = () => {
